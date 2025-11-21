@@ -150,7 +150,7 @@
         #btn-correct { background-color: var(--success-color); }
         #btn-skip { background-color: #78909c; }
 
-        /* --- HISTÓRICO DA SESSÃO (Novo CSS) --- */
+        /* --- HISTÓRICO DA SESSÃO --- */
         .history-container {
             margin-top: 40px;
             width: 100%;
@@ -181,6 +181,12 @@
             color: #555;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             display: flex;
+            justify-content: space-between; /* Separa texto da tag */
+            align-items: center;
+        }
+
+        .history-content {
+            display: flex;
             flex-direction: column;
         }
 
@@ -195,6 +201,28 @@
             color: #999;
             font-style: italic;
             font-size: 0.75rem;
+        }
+
+        /* Etiquetas de Status no Histórico */
+        .status-tag {
+            font-size: 0.7rem;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .status-success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
+        }
+
+        .status-fail {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef9a9a;
         }
 
         .game-over {
@@ -225,14 +253,14 @@
         </div>
 
         <div class="controls">
-            <button id="btn-skip" class="btn" onclick="handleAction()">Pular / Errou</button>
-            <button id="btn-correct" class="btn" onclick="handleAction()">Acertou!</button>
+            <button id="btn-skip" class="btn" onclick="handleAction(false)">Pular / Errou</button>
+            <button id="btn-correct" class="btn" onclick="handleAction(true)">Acertou!</button>
         </div>
 
         <div class="history-container">
             <div class="history-title">Histórico da Sessão</div>
             <div id="history-log" class="history-list">
-                </div>
+            </div>
         </div>
 
         <div id="game-over-message" class="game-over hidden">
@@ -309,10 +337,14 @@
             elGameOverMessage.classList.add('hidden');
         }
 
-        function addToHistory(wordData) {
+        function addToHistory(wordData, isSuccess) {
             const item = document.createElement('div');
             item.className = 'history-item';
             
+            // Container para as palavras (Esquerda)
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'history-content';
+
             const wordDiv = document.createElement('div');
             wordDiv.className = 'hist-word';
             wordDiv.textContent = wordData.palavra;
@@ -321,18 +353,32 @@
             forbiddenDiv.className = 'hist-forbidden';
             forbiddenDiv.textContent = `(${wordData.proibidas.join(', ')})`;
 
-            item.appendChild(wordDiv);
-            item.appendChild(forbiddenDiv);
+            contentDiv.appendChild(wordDiv);
+            contentDiv.appendChild(forbiddenDiv);
+
+            // Etiqueta de Status (Direita)
+            const statusTag = document.createElement('div');
+            if (isSuccess) {
+                statusTag.className = 'status-tag status-success';
+                statusTag.textContent = 'ACERTOU';
+            } else {
+                statusTag.className = 'status-tag status-fail';
+                statusTag.textContent = 'ERRO';
+            }
+
+            item.appendChild(contentDiv);
+            item.appendChild(statusTag);
 
             // Adiciona ao topo da lista
             elHistoryLog.prepend(item);
         }
 
-        function handleAction() {
+        // Agora aceita um parâmetro booleano
+        function handleAction(isSuccess) {
             if (!currentWord) return;
 
-            // 1. Adiciona ao histórico visual
-            addToHistory(currentWord);
+            // 1. Adiciona ao histórico visual com o status
+            addToHistory(currentWord, isSuccess);
 
             // 2. Salva e remove
             savePlayedId(currentWord.id);
@@ -356,9 +402,8 @@
         }
         
         // Inicia o jogo
-	let db = [];
-	fetch('dados.json').then(r => r.json()).then(d => { db = d; init(); });
+        let db = [];
+        fetch('dados.json').then(r => r.json()).then(d => { db = d; init(); });
     </script>
 </body>
-
 </html>
